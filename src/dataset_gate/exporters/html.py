@@ -1,8 +1,17 @@
 """Portable offline report; all dataset-derived text is HTML escaped."""
 
+import base64
+import hashlib
 from html import escape
 
 EXTENSION = "html"
+SCRIPT = "(() => {\n  const search = document.getElementById('rule-search');\n  const status = document.getElementById('result-filter');\n  const rows = [...document.querySelectorAll('tbody tr')];\n  const counter = document.getElementById('visible-count');\n  function filter() {\n    const query = search.value.trim().toLocaleLowerCase();\n    let count = 0;\n    for (const row of rows) {\n      row.hidden = !(row.textContent.toLocaleLowerCase().includes(query) &&\n        (status.value === 'all' || row.dataset.status === status.value));\n      if (!row.hidden) count++;\n    }\n    counter.textContent = `${count} of ${rows.length} checks shown`;\n  }\n  search.addEventListener('input', filter);\n  status.addEventListener('change', filter);\n  filter();\n})();"
+FILTERS = '<section class="filters" aria-label="Filter checks"><label for="rule-search">Find a rule<input id="rule-search" type="search" placeholder="Rule name, column or message"></label><label for="result-filter">Show results<select id="result-filter"><option value="all">All checks</option><option value="failed">Errors</option><option value="warning">Warnings</option><option value="passed">Passed</option></select></label><p id="visible-count" role="status" aria-live="polite"></p></section>'
+CSP = (
+    "default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-"
+    + base64.b64encode(hashlib.sha256(SCRIPT.encode()).digest()).decode()
+    + "'; base-uri 'none'; form-action 'none'"
+)
 STYLE = """
 :root{color-scheme:light;--ink:#142235;--muted:#526174;--blue:#1547cf;--line:#dce3ee}
 *{box-sizing:border-box}body{margin:0;background:#f3f6fb;color:var(--ink);font:16px/1.55 system-ui,sans-serif}
@@ -18,6 +27,9 @@ code{font-size:13px;overflow-wrap:anywhere}footer{margin-top:28px;font-size:14px
 @media(max-width:700px){.metrics{grid-template-columns:repeat(2,1fr)}h1{font-size:26px}main{padding:24px 16px}}
 @media print{header{background:white;color:var(--ink)}body{background:white}.table-wrap{overflow:visible}.metric{break-inside:avoid}}
 """
+
+
+STYLE += ".filters{display:flex;align-items:end;gap:16px;margin:20px 0}.filters label{display:grid;gap:6px;font-size:14px;font-weight:600}.filters input,.filters select{font:16px system-ui;padding:10px 12px;border:1px solid #aab7cb;border-radius:6px;background:white;color:#142235;min-height:44px}.filters input{min-width:280px}.filters p{margin:0 0 10px;color:#526174;font-size:14px}input:focus,select:focus{outline:3px solid #88b0ff;outline-offset:2px}[hidden]{display:none!important}@media(max-width:700px){.filters{align-items:stretch;flex-direction:column}.filters input{min-width:0;width:100%}}@media print{.filters{display:none}}"
 
 
 def render(report):
@@ -47,6 +59,6 @@ def render(report):
             ("Warnings", summary["warnings"]),
         ]
     )
-    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{e(report["contract"])} · Dataset Gate</title><style>{STYLE}</style></head><body>
+    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{e(report["contract"])} · Dataset Gate</title><meta http-equiv="Content-Security-Policy" content="{e(CSP)}"><style>{STYLE}</style></head><body>
 <header><div class="brand">Dataset Gate / Quality report</div><h1>{e(report["contract"])}</h1><span class="badge {report["status"]}">{e(report["status"]).title()}</span></header>
-<main><section class="metrics" aria-label="Run summary">{metrics}</section><h2>Validation results</h2><p class="subtle">Record numbers start after the header. Samples show at most 20 failures per rule; no source cell values are included.</p><!-- FILTERS --><div class="table-wrap"><table><caption class="subtle">{len(report["results"])} contract checks</caption><thead><tr><th scope="col">Rule</th><th scope="col">Result</th><th scope="col">Failed / checked</th><th scope="col">Details</th></tr></thead><tbody>{"".join(rows)}</tbody></table></div><footer>Run <code>{e(report["run_id"])}</code><br>Created {e(report["created_at"])}<br>Generated locally by Dataset Gate. A passing contract only confirms the configured checks.</footer></main><!-- SCRIPTS --></body></html>"""
+<main><section class="metrics" aria-label="Run summary">{metrics}</section><h2>Validation results</h2><p class="subtle">Record numbers start after the header. Samples show at most 20 failures per rule; no source cell values are included.</p>{FILTERS}<div class="table-wrap"><table><caption class="subtle">{len(report["results"])} contract checks</caption><thead><tr><th scope="col">Rule</th><th scope="col">Result</th><th scope="col">Failed / checked</th><th scope="col">Details</th></tr></thead><tbody>{"".join(rows)}</tbody></table></div><footer>Run <code>{e(report["run_id"])}</code><br>Created {e(report["created_at"])}<br>Generated locally by Dataset Gate. A passing contract only confirms the configured checks.</footer></main><script>{SCRIPT}</script></body></html>"""

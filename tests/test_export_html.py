@@ -24,6 +24,6 @@ def test_html_is_escaped_and_self_contained():
         ],
     }
     output = render(report)
-    assert "<script>" not in output and "&lt;script&gt;" in output
+    assert "<script>alert(1)</script>" not in output and "&lt;script&gt;" in output
     assert 'scope="col"' in output and 'name="viewport"' in output
     assert 'src="http' not in output
