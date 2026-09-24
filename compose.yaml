@@ -1,0 +1,12 @@
+services:
+  gate:
+    build: .
+    ports:
+      - "127.0.0.1:8765:8765"
+    volumes:
+      - gate-history:/data
+    environment:
+      - DATASET_GATE_TOKEN=${DATASET_GATE_TOKEN:-}
+    restart: unless-stopped
+volumes:
+  gate-history:
