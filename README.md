@@ -28,10 +28,12 @@ dataset-gate validate examples/tickets.dirty.csv --contract examples/tickets.con
 ```
 
 Open `reports/dirty.html` to search checks, filter errors, and inspect failing record indices.
+The responsive report shows errors first, uses cards in narrow windows, and includes a
+full-report print view. It works offline without external fonts, scripts, or services.
 The clean and faulty datasets each contain 300 synthetic support-ticket records. No real
 customer data is included. The report shows what actually ran, including failures.
 
-<img src="docs/assets/report.png" alt="Dataset Gate report showing 300 records, 10 failing checks, and one warning" width="462">
+<img src="docs/assets/report.jpg" alt="Dataset Gate report showing 300 records, 10 failing checks, and one warning" width="1100">
 
 ## What the application does
 

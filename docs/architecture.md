@@ -31,3 +31,10 @@ The bounded in-memory design keeps behavior understandable and easy to reproduce
 Larger-than-limit data is rejected, not sampled or silently truncated. This is a local
 single-user tool. Multi-tenant authorization, distributed jobs, object storage, and
 streaming statistics are future extensions, not implemented capabilities.
+
+The HTML exporter inlines the packaged `templates/report.css` and `report.js` assets
+into each report. The result stays portable and works offline. Script hashes in the
+Content Security Policy cover the exact embedded bytes; dataset-derived text is
+escaped. The desktop table becomes labeled cards below 900px, with semantic table
+roles retained for assistive technology. Print styles include every check, even
+when the on-screen view has been filtered.

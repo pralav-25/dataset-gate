@@ -1,35 +1,37 @@
-"""Portable offline report; all dataset-derived text is HTML escaped."""
+"""Responsive, self-contained reports with no external assets or cell values."""
 
 import base64
 import hashlib
+from datetime import datetime
 from html import escape
+from importlib.resources import files
 
 EXTENSION = "html"
-SCRIPT = "(() => {\n  const search = document.getElementById('rule-search');\n  const status = document.getElementById('result-filter');\n  const rows = [...document.querySelectorAll('tbody tr')];\n  const counter = document.getElementById('visible-count');\n  function filter() {\n    const query = search.value.trim().toLocaleLowerCase();\n    let count = 0;\n    for (const row of rows) {\n      row.hidden = !(row.textContent.toLocaleLowerCase().includes(query) &&\n        (status.value === 'all' || row.dataset.status === status.value));\n      if (!row.hidden) count++;\n    }\n    counter.textContent = `${count} of ${rows.length} checks shown`;\n  }\n  search.addEventListener('input', filter);\n  status.addEventListener('change', filter);\n  filter();\n})();"
-FILTERS = '<section class="filters" aria-label="Filter checks"><label for="rule-search">Find a rule<input id="rule-search" type="search" placeholder="Rule name, column or message"></label><label for="result-filter">Show results<select id="result-filter"><option value="all">All checks</option><option value="failed">Errors</option><option value="warning">Warnings</option><option value="passed">Passed</option></select></label><p id="visible-count" role="status" aria-live="polite"></p></section>'
+SCRIPT = files("dataset_gate").joinpath("templates/report.js").read_text(encoding="utf-8")
+FILTERS = """
+<section class="filters" aria-label="Filter checks">
+  <label class="search-field" for="rule-search"><span class="sr-only">Find a rule</span>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg>
+    <input id="rule-search" type="search" placeholder="Search rules, columns, or details…" autocomplete="off">
+  </label>
+  <label class="select-field" for="result-filter"><span class="sr-only">Show results</span>
+    <select id="result-filter"><option value="all">All results</option><option value="failed">Errors</option><option value="warning">Warnings</option><option value="passed">Passed</option></select>
+  </label>
+</section>
+<div class="table-meta"><p id="visible-count" role="status" aria-live="polite"></p><span>Errors first</span></div>
+"""
 CSP = (
     "default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-"
     + base64.b64encode(hashlib.sha256(SCRIPT.encode()).digest()).decode()
     + "'; base-uri 'none'; form-action 'none'"
 )
-STYLE = """
-:root{color-scheme:light;--ink:#142235;--muted:#526174;--blue:#1547cf;--line:#dce3ee}
-*{box-sizing:border-box}body{margin:0;background:#f3f6fb;color:var(--ink);font:16px/1.55 system-ui,sans-serif}
-header{background:#101f39;color:white;padding:24px max(24px,calc((100vw - 1160px)/2));border-bottom:4px solid #40d8bd}
-.brand{font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:#9ff1e2}h1{font-size:32px;line-height:1.2;margin:14px 0 8px}
-main{max-width:1208px;margin:auto;padding:32px 24px}h2{font-size:22px;margin:32px 0 16px}.subtle{color:var(--muted)}
-.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.metric{background:white;padding:20px;border:1px solid var(--line);border-radius:10px}
-.metric strong{font-size:32px;display:block;line-height:1.2;margin:6px 0}.metric span{font-size:14px;color:var(--muted)}
-.table-wrap{overflow:auto;background:white;border:1px solid var(--line);border-radius:10px}table{border-collapse:collapse;width:100%;text-align:left}
-th,td{padding:14px 18px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:14px;background:#edf2fb}td{font-size:14px}
-.badge{display:inline-block;padding:3px 9px;border-radius:6px;font-size:13px;font-weight:650;white-space:nowrap}.passed{color:#065c4a;background:#d7f8ee}.failed{color:#991e31;background:#ffe2e7}.warning{color:#795100;background:#fff0c7}
-code{font-size:13px;overflow-wrap:anywhere}footer{margin-top:28px;font-size:14px;color:var(--muted)}a{color:var(--blue)}
-@media(max-width:700px){.metrics{grid-template-columns:repeat(2,1fr)}h1{font-size:26px}main{padding:24px 16px}}
-@media print{header{background:white;color:var(--ink)}body{background:white}.table-wrap{overflow:visible}.metric{break-inside:avoid}}
-"""
+STYLE = files("dataset_gate").joinpath("templates/report.css").read_text(encoding="utf-8")
 
 
-STYLE += ".filters{display:flex;align-items:end;gap:16px;margin:20px 0}.filters label{display:grid;gap:6px;font-size:14px;font-weight:600}.filters input,.filters select{font:16px system-ui;padding:10px 12px;border:1px solid #aab7cb;border-radius:6px;background:white;color:#142235;min-height:44px}.filters input{min-width:280px}.filters p{margin:0 0 10px;color:#526174;font-size:14px}input:focus,select:focus{outline:3px solid #88b0ff;outline-offset:2px}[hidden]{display:none!important}@media(max-width:700px){.filters{align-items:stretch;flex-direction:column}.filters input{min-width:0;width:100%}}@media print{.filters{display:none}}"
+def _status(result):
+    return (
+        "passed" if result["passed"] else "failed" if result["severity"] == "error" else "warning"
+    )
 
 
 def render(report):
@@ -37,28 +39,79 @@ def render(report):
         return escape(str(value), quote=True)
 
     summary = report["summary"]
+    total = len(report["results"])
+    passed = summary["passed"]
+    errors = summary["errors"]
+    warnings = summary["warnings"]
+    score = round(passed / total * 100, 2) if total else 0
+    run_status = "failed" if errors else "warning" if warnings else "passed"
+    if errors:
+        title = (
+            f"{errors} check{'s' if errors != 1 else ''} need{'s' if errors == 1 else ''} attention"
+        )
+        description = '<span class="status-word">Gate failed.</span> Review the errors below.'
+        icon = "×"
+    elif warnings:
+        title = f"{warnings} warning{'s' if warnings != 1 else ''} to review"
+        description = '<span class="status-word warning">No blocking errors.</span> Review the warnings below.'
+        icon = "!"
+    elif total:
+        title = "All checks passed"
+        description = (
+            '<span class="status-word passed">Gate passed.</span> Your data meets this contract.'
+        )
+        icon = "✓"
+    else:
+        title = "No checks in this report"
+        description = "Add rules to your contract to validate this dataset."
+        icon = "–"
+    created_at = str(report["created_at"])
+    try:
+        date = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+        display_date = date.strftime("%d %b %Y · %H:%M %Z").strip()
+    except ValueError:
+        display_date = created_at
     rows = []
-    for result in report["results"]:
-        status = (
-            "passed"
-            if result["passed"]
-            else "failed"
-            if result["severity"] == "error"
-            else "warning"
+    priority = {"failed": 0, "warning": 1, "passed": 2}
+    for result in sorted(report["results"], key=lambda r: priority[_status(r)]):
+        status = _status(result)
+        records = result.get("records", ())
+        samples = (
+            '<div class="record-samples"><span>Sample records</span>'
+            + "".join(f"<code>{e(record)}</code>" for record in records)
+            + "</div>"
+            if records
+            else ""
         )
-        records = ", ".join(map(str, result.get("records", ()))) or "—"
-        rows.append(
-            f'<tr data-status="{status}"><td><strong>{e(result["id"])}</strong><br><span class="subtle">{e(result["check"])} · {e(result.get("column") or "Dataset")}</span></td><td><span class="badge {status}">{status.title()}</span></td><td>{result["failed"]} / {result["checked"]}</td><td>{e(result["message"])}<br><span class="subtle">Records: {e(records)}</span></td></tr>'
-        )
+        label = {"passed": "Passed", "failed": "Error", "warning": "Warning"}[status]
+        rows.append(f"""<tr role="row" data-status="{status}">
+<td role="cell" class="rule-cell"><strong class="rule-name">{e(result["id"])}</strong><div class="rule-meta"><code>{e(result.get("column") or "Dataset")}</code><span class="rule-type">{e(result["check"])}</span></div></td>
+<td role="cell" class="status-cell"><span class="badge {status}">{label}</span></td>
+<td role="cell" class="count-cell"><span class="record-total"><strong>{e(result["failed"])}</strong> / {e(result["checked"])}</span><span class="record-label">failed / checked</span></td>
+<td role="cell" class="detail-cell"><p class="detail-message">{e(result["message"])}</p>{samples}</td>
+</tr>""")
     metrics = "".join(
-        f'<div class="metric"><span>{label}</span><strong>{value}</strong></div>'
-        for label, value in [
-            ("Records checked", report["row_count"]),
-            ("Rules passed", summary["passed"]),
-            ("Errors", summary["errors"]),
-            ("Warnings", summary["warnings"]),
+        f'<div class="metric {kind}"><dt>{label}</dt><dd>{e(value)}</dd></div>'
+        for label, value, kind in [
+            ("Records checked", report["row_count"], ""),
+            ("Total checks", total, ""),
+            ("Errors", errors, "error"),
+            ("Warnings", warnings, "warn"),
         ]
     )
-    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{e(report["contract"])} · Dataset Gate</title><meta http-equiv="Content-Security-Policy" content="{e(CSP)}"><style>{STYLE}</style></head><body>
-<header><div class="brand">Dataset Gate / Quality report</div><h1>{e(report["contract"])}</h1><span class="badge {report["status"]}">{e(report["status"]).title()}</span></header>
-<main><section class="metrics" aria-label="Run summary">{metrics}</section><h2>Validation results</h2><p class="subtle">Record numbers start after the header. Samples show at most 20 failures per rule; no source cell values are included.</p>{FILTERS}<div class="table-wrap"><table><caption class="subtle">{len(report["results"])} contract checks</caption><thead><tr><th scope="col">Rule</th><th scope="col">Result</th><th scope="col">Failed / checked</th><th scope="col">Details</th></tr></thead><tbody>{"".join(rows)}</tbody></table></div><footer>Run <code>{e(report["run_id"])}</code><br>Created {e(report["created_at"])}<br>Generated locally by Dataset Gate. A passing contract only confirms the configured checks.</footer></main><script>{SCRIPT}</script></body></html>"""
+    bars = "".join(
+        f'<span class="score-{kind}" style="flex:{int(value)}"></span>'
+        for kind, value in [("pass", passed), ("warning", warnings), ("error", errors)]
+        if value
+    )
+    return f"""<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{e(report["contract"])} · Dataset Gate</title><meta http-equiv="Content-Security-Policy" content="{e(CSP)}"><style>{STYLE}</style></head>
+<body><header class="topbar"><div class="topbar-inner"><div class="brand"><span class="brand-mark" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V5h6v15M14 20V5h6v15M2 20h20M10 9h4M10 15h4"/></svg></span>Dataset Gate</div><span class="topbar-note">Local validation report</span></div></header>
+<main><div class="report-heading"><div><p class="eyebrow">Data quality / Run report</p><h1>{e(report["contract"])}</h1><p class="run-date">Run {e(str(report["run_id"])[:8])}<span> / </span><time datetime="{e(created_at)}">{e(display_date)}</time></p></div><button class="button print-button" id="print-report" type="button" aria-label="Print full report"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 9V3h12v6M6 17H3V9h18v8h-3M6 14h12v7H6zM17 12h1"/></svg><span>Print report</span></button></div>
+<section class="summary" aria-label="Run summary"><div class="summary-main"><div class="summary-copy"><h2 class="summary-title"><span class="summary-icon {run_status}" aria-hidden="true">{icon}</span>{title}</h2><p>{description}</p></div><div class="score"><div class="score-line"><strong class="score-value">{score:g}%</strong><span class="score-label">Checks passed</span></div><div class="score-bar" role="img" aria-label="{passed} passed, {warnings} warnings, {errors} errors">{bars}</div></div></div><dl class="metrics">{metrics}</dl></section>
+<section class="results" aria-labelledby="results-heading"><div class="section-heading"><h2 id="results-heading">Validation results</h2><span>{total}</span></div>{FILTERS}
+<div class="table-wrap"><table id="results-table" role="table"><caption class="sr-only">{total} contract checks, errors first</caption><thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col">Rule / column</th><th role="columnheader" scope="col">Result</th><th role="columnheader" scope="col">Failed / checked</th><th role="columnheader" scope="col">Check details</th></tr></thead><tbody role="rowgroup">{"".join(rows)}</tbody></table></div>
+<div class="empty-state" id="empty-state" hidden><h3>No matching checks</h3><p>Try a different search or show all results.</p><button class="button" id="clear-filters" type="button">Clear filters</button></div>
+<p class="report-note">Record numbers start after the header. Each rule shows up to 20 failing record indices; source cell values stay private.</p></section>
+<footer><p><span class="footer-brand">Dataset Gate</span> · Generated locally<br>A passing contract confirms only the configured checks.</p><p>Run ID<br><code>{e(report["run_id"])}</code></p></footer></main><script>{SCRIPT}</script></body></html>"""
