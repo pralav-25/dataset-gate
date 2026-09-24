@@ -1,0 +1,29 @@
+name: Tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - run: python -m pip install -e '.[api,dev]'
+      - run: pytest --cov=dataset_gate --cov-report=term-missing
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: python -m build
+      - run: dataset-gate validate examples/tickets.clean.csv --contract examples/tickets.contract.json --format junit -o clean.xml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: test-report-${{ matrix.python }}
+          path: clean.xml
