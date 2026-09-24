@@ -1,0 +1,189 @@
+{
+  "version": 1,
+  "name": "Support tickets · training-data gate",
+  "rules": [
+    {
+      "id": "schema",
+      "check": "schema",
+      "params": {
+        "columns": [
+          "ticket_id",
+          "created_at",
+          "resolved_at",
+          "channel",
+          "priority",
+          "status",
+          "first_response_minutes",
+          "handling_minutes",
+          "wait_minutes",
+          "resolution_minutes",
+          "satisfaction",
+          "agent_id"
+        ],
+        "ordered": true
+      }
+    },
+    {
+      "id": "enough-records",
+      "check": "row_count",
+      "params": {
+        "min": 12,
+        "max": 50000
+      }
+    },
+    {
+      "id": "ticket-required",
+      "check": "not_null",
+      "column": "ticket_id"
+    },
+    {
+      "id": "ticket-unique",
+      "check": "unique",
+      "column": "ticket_id"
+    },
+    {
+      "id": "ticket-prefix",
+      "check": "prefix",
+      "column": "ticket_id",
+      "params": {
+        "value": "T-"
+      }
+    },
+    {
+      "id": "created-at-iso",
+      "check": "date_format",
+      "column": "created_at",
+      "params": {
+        "format": "datetime"
+      }
+    },
+    {
+      "id": "resolved-at-iso",
+      "check": "date_format",
+      "column": "resolved_at",
+      "params": {
+        "format": "datetime"
+      }
+    },
+    {
+      "id": "closed-needs-resolution",
+      "check": "conditional_required",
+      "column": "resolved_at",
+      "params": {
+        "when": "status",
+        "equals": "closed"
+      }
+    },
+    {
+      "id": "chronology",
+      "check": "date_order",
+      "column": "created_at",
+      "params": {
+        "other": "resolved_at"
+      }
+    },
+    {
+      "id": "known-channel",
+      "check": "enum",
+      "column": "channel",
+      "params": {
+        "values": [
+          "web",
+          "email",
+          "chat"
+        ]
+      }
+    },
+    {
+      "id": "priority-required",
+      "check": "not_null",
+      "column": "priority"
+    },
+    {
+      "id": "known-priority",
+      "check": "enum",
+      "column": "priority",
+      "params": {
+        "values": [
+          "low",
+          "medium",
+          "high"
+        ]
+      }
+    },
+    {
+      "id": "known-status",
+      "check": "enum",
+      "column": "status",
+      "params": {
+        "values": [
+          "open",
+          "closed"
+        ]
+      }
+    },
+    {
+      "id": "response-bounds",
+      "check": "range",
+      "column": "first_response_minutes",
+      "params": {
+        "min": 0,
+        "max": 1440
+      }
+    },
+    {
+      "id": "handling-bounds",
+      "check": "range",
+      "column": "handling_minutes",
+      "params": {
+        "min": 0,
+        "max": 10080
+      }
+    },
+    {
+      "id": "wait-bounds",
+      "check": "range",
+      "column": "wait_minutes",
+      "params": {
+        "min": 0,
+        "max": 10080
+      }
+    },
+    {
+      "id": "resolution-sum",
+      "check": "sum_equals",
+      "column": "resolution_minutes",
+      "params": {
+        "columns": [
+          "handling_minutes",
+          "wait_minutes"
+        ],
+        "tolerance": 0
+      }
+    },
+    {
+      "id": "satisfaction-bounds",
+      "check": "range",
+      "column": "satisfaction",
+      "params": {
+        "min": 1,
+        "max": 5
+      }
+    },
+    {
+      "id": "satisfaction-missingness",
+      "check": "null_ratio",
+      "column": "satisfaction",
+      "severity": "warning",
+      "params": {
+        "max": 0.25
+      }
+    },
+    {
+      "id": "agent-whitespace",
+      "check": "no_whitespace",
+      "column": "agent_id",
+      "severity": "warning"
+    }
+  ]
+}
