@@ -1,23 +1,34 @@
 """Application factory; report history location is explicit and test-isolated."""
 
 import importlib
+import os
 import pkgutil
 import sqlite3
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from dataset_gate import __version__
 from dataset_gate.api import routes
+from dataset_gate.api.security import SecurityMiddleware
 from dataset_gate.errors import GateError
 from dataset_gate.history.store import Store
 
 
-def create_app(db_path=".dataset-gate/history.db"):
+def create_app(db_path=".dataset-gate/history.db", *, token=None):
     app = FastAPI(
         title="Dataset Gate",
         version=__version__,
         description="Local data-contract validation. Quality failures return HTTP 200 with a failed report; malformed requests return 4xx.",
+    )
+    app.add_middleware(
+        SecurityMiddleware,
+        token=token if token is not None else os.environ.get("DATASET_GATE_TOKEN"),
+    )
+    hosts = os.environ.get("DATASET_GATE_HOSTS", "localhost,127.0.0.1,[::1],testserver").split(",")
+    app.add_middleware(
+        TrustedHostMiddleware, allowed_hosts=[host.strip() for host in hosts if host.strip()]
     )
     app.state.store = Store(db_path)
 

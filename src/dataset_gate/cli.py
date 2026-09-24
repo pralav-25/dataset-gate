@@ -3,6 +3,7 @@
 import argparse
 import importlib
 import pkgutil
+import sqlite3
 import sys
 
 from dataset_gate import __version__, commands
@@ -29,6 +30,9 @@ def main(argv=None):
         return 0
     try:
         return args.run(args) or 0
+    except sqlite3.Error:
+        print("Error: history database is unavailable or invalid", file=sys.stderr)
+        return 2
     except (GateError, OSError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 2

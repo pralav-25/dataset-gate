@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from dataset_gate.contracts import loads_contract
+from dataset_gate.errors import GateError
 from dataset_gate.files import write_output
 from dataset_gate.history.store import Store
 
@@ -27,7 +28,14 @@ def output(args, value, *, protected=(), raw=False):
 
 
 def contract_file(path):
-    return loads_contract(Path(path).read_text(encoding="utf-8"))
+    with Path(path).open("rb") as stream:
+        raw = stream.read(100001)
+    if len(raw) > 100000:
+        raise GateError("contract exceeds 100 KB")
+    try:
+        return loads_contract(raw.decode("utf-8-sig"))
+    except UnicodeDecodeError as exc:
+        raise GateError("contract must use UTF-8") from exc
 
 
 def history_options(parser):

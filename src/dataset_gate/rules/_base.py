@@ -1,6 +1,5 @@
 """Reusable rule schemas and row evaluators."""
 
-import math
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 
@@ -48,7 +47,7 @@ def nonnegative(value):
 
 
 def finite(value):
-    return type(value) in (int, float) and math.isfinite(value) and number(value) is not None
+    return type(value) in (int, float) and number(value) is not None
 
 
 def text(value):

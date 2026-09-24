@@ -85,5 +85,5 @@ def loads_contract(text):
                 ),
             )
         )
-    except (json.JSONDecodeError, RecursionError) as exc:
+    except (ValueError, RecursionError) as exc:
         raise GateError("contract is not valid JSON") from exc
