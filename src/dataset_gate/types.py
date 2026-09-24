@@ -12,7 +12,7 @@ def scalar_type(value):
     if value in ("true", "false"):
         return "boolean"
     if re.fullmatch(r"-?(0|[1-9][0-9]*)", value):
-        return "integer"
+        return "integer" if number(value) is not None else "string"
     if re.fullmatch(r"-?0[0-9]+", value):
         return "string"
     if number(value) is not None:

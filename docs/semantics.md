@@ -34,7 +34,8 @@ Datetime checks require timezones. Unicode text is not normalized.
 Version 1 has a name and 1..100 uniquely identified rules. Unknown fields, checks and
 parameters fail validation. JSON-file duplicate keys and nonfinite numbers are rejected.
 Inference drafts column-presence and observed-type rules; it does not invent business
-ranges or claim that a sample establishes truth. Review drafts before enforcement.
+ranges or claim that a sample establishes truth. Review drafts before enforcement. Automatic inference is limited to 50 columns;
+wide schemas require an explicitly authored contract rather than a silently truncated draft.
 
 Quality score is the percentage of configured rules that pass, with equal rule weighting.
 It is not a fraction of clean rows: row and aggregate checks measure different things.

@@ -42,7 +42,7 @@ customer data is included. The report shows what actually ran, including failure
   schema changes, mean shifts and categorical total variation.
 - **Reproducible history:** dataset and contract SHA-256 fingerprints, immutable reports,
   reviewer notes, named passing baselines, saved-run comparisons and protected retention.
-- **Useful interfaces:** 15 CLI commands, a versioned local HTTP API with OpenAPI docs,
+- **Useful interfaces:** 14 CLI commands, a versioned local HTTP API with OpenAPI docs,
   batch validation, and JSON/HTML/Markdown/JUnit/CSV exports.
 - **Input and output controls:** bounded ingestion, strict contract fields, finite numeric
   domains, optional API bearer tokens, SQL parameter binding, HTML escaping, safe CSV
