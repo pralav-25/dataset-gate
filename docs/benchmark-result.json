@@ -1,0 +1,15 @@
+{
+  "rows": 10000,
+  "rules": 20,
+  "repeats": 3,
+  "seconds": [
+    0.16080112499912502,
+    0.15363483300461667,
+    0.15741116600111127
+  ],
+  "median_seconds": 0.15741116600111127,
+  "peak_python_bytes": 9972355,
+  "python": "3.12.14",
+  "platform": "macOS-27.0-arm64-arm-64bit",
+  "method": "Timing excludes source generation and contract loading; peak memory is a separate tracemalloc pass. Local results are not a deployment guarantee."
+}

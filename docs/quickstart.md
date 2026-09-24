@@ -20,4 +20,4 @@ dataset-gate serve --db reports/history.db
 Open the local API documentation at `http://127.0.0.1:8765/docs`. A saved report
 can be read at `/api/v1/runs/{run_id}/report`. The HTML file also opens offline.
 Use `--force` only to replace an existing report; input aliases remain protected.
-A inferred contract is a draft: review the business constraints before enforcement.
+An inferred contract is a draft: review the business constraints before enforcement.
