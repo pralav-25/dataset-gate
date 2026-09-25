@@ -623,3 +623,24 @@ The rule produces checked=1 and failed=0 or 1, with no row samples.
   "column": "value"
 }
 ```
+
+## quantile_range
+
+`q`, `min`, and `max` are required finite JSON numbers, excluding bool.
+q lies in [0,1] and min <= max. The sorted sample is interpolated at q*(n-1)
+(type-7 quantile), with inclusive bounds and exact rational arithmetic. Blank
+cells are ignored; empty samples or any malformed number fail. This aggregate
+always has checked=1, failed=0 or 1, and no row samples.
+
+```json
+{
+  "id": "quantile-range",
+  "check": "quantile_range",
+  "params": {
+    "q": 0.9,
+    "min": 0,
+    "max": 30
+  },
+  "column": "value"
+}
+```
