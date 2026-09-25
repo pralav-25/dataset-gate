@@ -544,3 +544,22 @@ malformed cells fail and up to 20 record indices are retained. No parameters.
   "column": "value"
 }
 ```
+
+## ip_address
+
+`version` is optional: `any` (default), integer `4`, or integer `6`. Booleans
+are rejected. Nonblank cells must be an address of the chosen version; subnet
+suffixes, zone identifiers, and surrounding whitespace fail. Uses standard-library
+`ipaddress` parsing, including its rejection of IPv4 leading zeros. Blanks are
+skipped. Counts are per nonblank cell, with up to 20 failing record indices.
+
+```json
+{
+  "id": "ip-address",
+  "check": "ip_address",
+  "params": {
+    "version": "any"
+  },
+  "column": "value"
+}
+```
