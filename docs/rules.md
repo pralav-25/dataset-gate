@@ -563,3 +563,23 @@ skipped. Counts are per nonblank cell, with up to 20 failing record indices.
   "column": "value"
 }
 ```
+
+## decimal_scale
+
+`places` is required: an integer from 0 through 18, excluding bool. Nonblank
+cells must be finite numbers in the shared numeric domain and exactly representable
+with at most that many fractional digits. Trailing zeros do not count: `1.2300`
+passes with 2 places. Scientific notation is interpreted numerically. Blanks are
+skipped; every other cell is checked and malformed numbers fail. Up to 20 failing
+record indices are returned. Decimal tuples are inspected without binary floats.
+
+```json
+{
+  "id": "decimal-scale",
+  "check": "decimal_scale",
+  "params": {
+    "places": 2
+  },
+  "column": "value"
+}
+```
