@@ -527,3 +527,163 @@ Required parameters: none.
   "params": {}
 }
 ```
+
+## uuid
+
+Nonblank cells must be 36-character hyphenated UUIDs. Hexadecimal letters may
+be uppercase or lowercase; braces, URN prefixes, compact hex, and surrounding
+whitespace are rejected. Nil UUIDs are accepted. Blanks are skipped; combine with
+`not_null` when required. Each nonblank cell contributes one checked result;
+malformed cells fail and up to 20 record indices are retained. No parameters.
+
+```json
+{
+  "id": "uuid",
+  "check": "uuid",
+  "params": {},
+  "column": "value"
+}
+```
+
+## ip_address
+
+`version` is optional: `any` (default), integer `4`, or integer `6`. Booleans
+are rejected. Nonblank cells must be an address of the chosen version; subnet
+suffixes, zone identifiers, and surrounding whitespace fail. Uses standard-library
+`ipaddress` parsing, including its rejection of IPv4 leading zeros. Blanks are
+skipped. Counts are per nonblank cell, with up to 20 failing record indices.
+
+```json
+{
+  "id": "ip-address",
+  "check": "ip_address",
+  "params": {
+    "version": "any"
+  },
+  "column": "value"
+}
+```
+
+## decimal_scale
+
+`places` is required: an integer from 0 through 18, excluding bool. Nonblank
+cells must be finite numbers in the shared numeric domain and exactly representable
+with at most that many fractional digits. Trailing zeros do not count: `1.2300`
+passes with 2 places. Scientific notation is interpreted numerically. Blanks are
+skipped; every other cell is checked and malformed numbers fail. Up to 20 failing
+record indices are returned. Decimal tuples are inspected without binary floats.
+
+```json
+{
+  "id": "decimal-scale",
+  "check": "decimal_scale",
+  "params": {
+    "places": 2
+  },
+  "column": "value"
+}
+```
+
+## multiple_of
+
+`divisor` is required: a positive finite JSON number in the shared numeric
+domain, excluding bool. Each nonblank cell must be a finite exact multiple of
+that divisor; negative multiples and zero pass. Blanks are skipped. Decimal
+values are converted to exact integer ratios for divisibility, avoiding binary
+rounding and Decimal context precision. Counts are per nonblank cell; at most
+20 failing record indices are retained.
+
+```json
+{
+  "id": "multiple-of",
+  "check": "multiple_of",
+  "params": {
+    "divisor": 0.05
+  },
+  "column": "value"
+}
+```
+
+## median_range
+
+`min` and `max` are required finite JSON numbers in the shared numeric
+domain, with min <= max and bool excluded. Bounds are inclusive. Blank cells
+are ignored; no nonblank values or any malformed numeric cell fails the aggregate.
+Even-sized samples average their two central values using exact rational arithmetic.
+The rule produces checked=1 and failed=0 or 1, with no row samples.
+
+```json
+{
+  "id": "median-range",
+  "check": "median_range",
+  "params": {
+    "min": 2,
+    "max": 4
+  },
+  "column": "value"
+}
+```
+
+## quantile_range
+
+`q`, `min`, and `max` are required finite JSON numbers, excluding bool.
+q lies in [0,1] and min <= max. The sorted sample is interpolated at q*(n-1)
+(type-7 quantile), with inclusive bounds and exact rational arithmetic. Blank
+cells are ignored; empty samples or any malformed number fail. This aggregate
+always has checked=1, failed=0 or 1, and no row samples.
+
+```json
+{
+  "id": "quantile-range",
+  "check": "quantile_range",
+  "params": {
+    "q": 0.9,
+    "min": 0,
+    "max": 30
+  },
+  "column": "value"
+}
+```
+
+## string_case
+
+`case` is required: `lower` or `upper`. A nonblank cell passes when it is
+unchanged by the corresponding Python Unicode case conversion. Digits, punctuation,
+and scripts without case pass both modes. Text is not stripped or normalized;
+combine with `no_whitespace` for whitespace restrictions. Blanks are skipped.
+Counts are per nonblank cell, with at most 20 failing record indices.
+
+```json
+{
+  "id": "string-case",
+  "check": "string_case",
+  "params": {
+    "case": "lower"
+  },
+  "column": "value"
+}
+```
+
+## nonblank_count
+
+`columns` is a required nonempty list of distinct column names. `min` and
+`max` are required nonnegative integers, excluding bool, with min <= max <=
+the number of listed columns. This supports exactly-one and at-least-one field
+requirements. Every record is checked, including fully blank records. A cell
+is populated when its text is not whitespace-only. Missing columns produce a
+failed finding. At most 20 failing record indices are retained; `column` is omitted.
+
+```json
+{
+  "id": "nonblank-count",
+  "check": "nonblank_count",
+  "params": {
+    "columns": [
+      "a",
+      "b"
+    ],
+    "min": 1,
+    "max": 1
+  }
+}
+```
