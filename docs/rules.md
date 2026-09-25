@@ -663,3 +663,27 @@ Counts are per nonblank cell, with at most 20 failing record indices.
   "column": "value"
 }
 ```
+
+## nonblank_count
+
+`columns` is a required nonempty list of distinct column names. `min` and
+`max` are required nonnegative integers, excluding bool, with min <= max <=
+the number of listed columns. This supports exactly-one and at-least-one field
+requirements. Every record is checked, including fully blank records. A cell
+is populated when its text is not whitespace-only. Missing columns produce a
+failed finding. At most 20 failing record indices are retained; `column` is omitted.
+
+```json
+{
+  "id": "nonblank-count",
+  "check": "nonblank_count",
+  "params": {
+    "columns": [
+      "a",
+      "b"
+    ],
+    "min": 1,
+    "max": 1
+  }
+}
+```

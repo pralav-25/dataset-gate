@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0
+
+- Add eight opt-in checks for UUIDs, IP addresses, decimal scale, exact multiples,
+  median and quantile bounds, Unicode case, and populated field counts.
+- Retain contract version 1 and existing report formats; old contracts are unchanged.
+- Add core and HTTP regression coverage for every new check.
+
 ## 0.1.0
 
 First complete local application release.

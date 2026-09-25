@@ -2,6 +2,9 @@
 
 [![Tests](https://github.com/pralav-25/dataset-gate/actions/workflows/ci.yml/badge.svg)](https://github.com/pralav-25/dataset-gate/actions/workflows/ci.yml)
 
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue)](pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+
 **Catch broken CSV data before it reaches an ML pipeline.**
 
 Dataset Gate profiles datasets, enforces versioned data contracts, compares revisions,
@@ -37,7 +40,7 @@ customer data is included. The report shows what actually ran, including failure
 
 ## What the application does
 
-- **37 contract checks:** types, ranges, uniqueness, schemas, composite keys, conditional
+- **38 contract checks:** types, ranges, uniqueness, schemas, composite keys, conditional
   requiredness, cross-column comparisons and sums, date ordering, category constraints,
   missingness, functional dependencies, sequences, and text validation.
 - **Data profiling and comparison:** blanks, duplicates, lexical types, numeric quantiles,
