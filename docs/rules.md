@@ -603,3 +603,23 @@ rounding and Decimal context precision. Counts are per nonblank cell; at most
   "column": "value"
 }
 ```
+
+## median_range
+
+`min` and `max` are required finite JSON numbers in the shared numeric
+domain, with min <= max and bool excluded. Bounds are inclusive. Blank cells
+are ignored; no nonblank values or any malformed numeric cell fails the aggregate.
+Even-sized samples average their two central values using exact rational arithmetic.
+The rule produces checked=1 and failed=0 or 1, with no row samples.
+
+```json
+{
+  "id": "median-range",
+  "check": "median_range",
+  "params": {
+    "min": 2,
+    "max": 4
+  },
+  "column": "value"
+}
+```
