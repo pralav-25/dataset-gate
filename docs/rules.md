@@ -644,3 +644,22 @@ always has checked=1, failed=0 or 1, and no row samples.
   "column": "value"
 }
 ```
+
+## string_case
+
+`case` is required: `lower` or `upper`. A nonblank cell passes when it is
+unchanged by the corresponding Python Unicode case conversion. Digits, punctuation,
+and scripts without case pass both modes. Text is not stripped or normalized;
+combine with `no_whitespace` for whitespace restrictions. Blanks are skipped.
+Counts are per nonblank cell, with at most 20 failing record indices.
+
+```json
+{
+  "id": "string-case",
+  "check": "string_case",
+  "params": {
+    "case": "lower"
+  },
+  "column": "value"
+}
+```
