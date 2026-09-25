@@ -527,3 +527,20 @@ Required parameters: none.
   "params": {}
 }
 ```
+
+## uuid
+
+Nonblank cells must be 36-character hyphenated UUIDs. Hexadecimal letters may
+be uppercase or lowercase; braces, URN prefixes, compact hex, and surrounding
+whitespace are rejected. Nil UUIDs are accepted. Blanks are skipped; combine with
+`not_null` when required. Each nonblank cell contributes one checked result;
+malformed cells fail and up to 20 record indices are retained. No parameters.
+
+```json
+{
+  "id": "uuid",
+  "check": "uuid",
+  "params": {},
+  "column": "value"
+}
+```
