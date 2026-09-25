@@ -583,3 +583,23 @@ record indices are returned. Decimal tuples are inspected without binary floats.
   "column": "value"
 }
 ```
+
+## multiple_of
+
+`divisor` is required: a positive finite JSON number in the shared numeric
+domain, excluding bool. Each nonblank cell must be a finite exact multiple of
+that divisor; negative multiples and zero pass. Blanks are skipped. Decimal
+values are converted to exact integer ratios for divisibility, avoiding binary
+rounding and Decimal context precision. Counts are per nonblank cell; at most
+20 failing record indices are retained.
+
+```json
+{
+  "id": "multiple-of",
+  "check": "multiple_of",
+  "params": {
+    "divisor": 0.05
+  },
+  "column": "value"
+}
+```
