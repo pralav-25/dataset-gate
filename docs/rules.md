@@ -735,3 +735,16 @@ Bound the number of distinct nonblank cell values with required nonnegative inte
   }
 }
 ```
+
+## luhn
+
+Check each nonblank identifier using the Luhn checksum. Values must contain at least two ASCII digits, including the check digit. No parameters are accepted. Leading zeros are preserved; spaces, punctuation, signs, and non-ASCII digits fail. Blank cells are skipped. This verifies a checksum only; it does not establish that an identifier was issued, is active, or is unique.
+
+```json
+{
+  "id": "rule",
+  "check": "luhn",
+  "column": "value",
+  "params": {}
+}
+```
