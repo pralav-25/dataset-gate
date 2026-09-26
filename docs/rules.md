@@ -703,3 +703,19 @@ Require canonical `YYYY-MM-DD` dates between inclusive `min` and `max` dates. Bo
   }
 }
 ```
+
+## sum_range
+
+Require the exact decimal sum of nonblank cells to fall between inclusive numeric `min` and `max` bounds. Both finite bounds are required and must satisfy `min <= max`. Numeric cells follow the shared bounded numeric domain. A malformed or nonfinite value fails the single aggregate check. Blanks are skipped; the empty sum is zero. `checked` is 1, `failed` is 0 or 1, and record samples are empty.
+
+```json
+{
+  "id": "rule",
+  "check": "sum_range",
+  "column": "value",
+  "params": {
+    "min": 0,
+    "max": 5
+  }
+}
+```

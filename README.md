@@ -40,7 +40,7 @@ customer data is included. The report shows what actually ran, including failure
 
 ## What the application does
 
-- **39 contract checks:** types, ranges, uniqueness, schemas, composite keys, conditional
+- **40 contract checks:** types, ranges, uniqueness, schemas, composite keys, conditional
   requiredness, cross-column comparisons and sums, date ordering, category constraints,
   missingness, functional dependencies, sequences, and text validation.
 - **Data profiling and comparison:** blanks, duplicates, lexical types, numeric quantiles,
