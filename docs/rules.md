@@ -687,3 +687,19 @@ failed finding. At most 20 failing record indices are retained; `column` is omit
   }
 }
 ```
+
+## date_range
+
+Require canonical `YYYY-MM-DD` dates between inclusive `min` and `max` dates. Both bounds are required, must be valid calendar dates, and must satisfy `min <= max`. Nonblank cells are checked individually; malformed dates and dates outside the interval fail. Blank cells are skipped. Whitespace is not trimmed.
+
+```json
+{
+  "id": "rule",
+  "check": "date_range",
+  "column": "value",
+  "params": {
+    "min": "2024-01-01",
+    "max": "2024-12-31"
+  }
+}
+```
