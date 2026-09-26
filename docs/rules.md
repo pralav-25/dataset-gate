@@ -719,3 +719,19 @@ Require the exact decimal sum of nonblank cells to fall between inclusive numeri
   }
 }
 ```
+
+## distinct_count
+
+Bound the number of distinct nonblank cell values with required nonnegative integer `min` and `max` parameters. Booleans and fractional bounds are rejected; `min <= max` is required. Matching is case-sensitive and values are not trimmed. Empty or entirely blank columns have zero distinct values. This produces one aggregate check, zero or one failures, and no record samples.
+
+```json
+{
+  "id": "rule",
+  "check": "distinct_count",
+  "column": "value",
+  "params": {
+    "min": 1,
+    "max": 1
+  }
+}
+```
