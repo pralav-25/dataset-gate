@@ -763,3 +763,20 @@ Require each nonblank value to already be in the declared Unicode normalization 
   }
 }
 ```
+
+## not_in
+
+Reject nonblank cells that exactly match a forbidden entry in required `values`. Provide 1–200 distinct nonempty strings of at most 200 characters each. Matching is case-sensitive and no trimming or Unicode normalization is performed. Blank cells are skipped; combine with `not_null` to reject blanks. Each nonblank cell is checked once, with failing record samples bounded to 20.
+
+```json
+{
+  "id": "rule",
+  "check": "not_in",
+  "column": "value",
+  "params": {
+    "values": [
+      "unknown"
+    ]
+  }
+}
+```
