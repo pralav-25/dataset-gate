@@ -780,3 +780,18 @@ Reject nonblank cells that exactly match a forbidden entry in required `values`.
   }
 }
 ```
+
+## ip_network
+
+Validate IPv4 or IPv6 CIDR networks with an explicit numeric prefix length and no host bits set. Optional `version` is integer `4`, integer `6`, or `"any"` (default); booleans are invalid. Bare addresses, dotted netmasks, scoped IPv6 addresses, and surrounding whitespace fail. `/0` and full-length host prefixes are valid when their network address is valid. Blanks are skipped and nonblank cells are checked individually.
+
+```json
+{
+  "id": "rule",
+  "check": "ip_network",
+  "column": "value",
+  "params": {
+    "version": "any"
+  }
+}
+```
