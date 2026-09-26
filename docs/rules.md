@@ -795,3 +795,18 @@ Validate IPv4 or IPv6 CIDR networks with an explicit numeric prefix length and n
   }
 }
 ```
+
+## json_type
+
+Parse each nonblank cell as JSON and require the top-level `type`: `object`, `array`, `string`, `number`, `boolean`, or `null`. The parameter is required. Booleans are distinct from numbers. Decimal parsing avoids binary-float overflow for large finite numeric literals; nonstandard `NaN` and `Infinity` literals, including nested ones, fail. Malformed or excessively nested JSON also fails the record. CSV blanks are skipped; the literal JSON `null` is checked.
+
+```json
+{
+  "id": "rule",
+  "check": "json_type",
+  "column": "value",
+  "params": {
+    "type": "object"
+  }
+}
+```
