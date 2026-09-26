@@ -748,3 +748,18 @@ Check each nonblank identifier using the Luhn checksum. Values must contain at l
   "params": {}
 }
 ```
+
+## unicode_normalization
+
+Require each nonblank value to already be in the declared Unicode normalization `form`: `NFC`, `NFD`, `NFKC`, or `NFKD`. The parameter is required and case-sensitive. Values are inspected without modifying them. Blanks are skipped; each nonblank value contributes one checked record and each mismatch one failure. Compatibility forms may distinguish characters that canonical forms preserve.
+
+```json
+{
+  "id": "rule",
+  "check": "unicode_normalization",
+  "column": "value",
+  "params": {
+    "form": "NFC"
+  }
+}
+```
