@@ -1,0 +1,37 @@
+name: Dataset Gate
+description: Validate CSV data contracts and retain reports even when a quality gate fails.
+author: Pralav Singh
+branding:
+  icon: check-circle
+  color: blue
+inputs:
+  dataset:
+    description: CSV, TSV or gzip file path, relative to the checked-out repository.
+    required: true
+  contract:
+    description: Version-one JSON contract path, relative to the checked-out repository.
+    required: true
+  fail-on-warning:
+    description: Fail the step when a warning rule fails, in addition to error rules.
+    default: 'false'
+outputs:
+  status:
+    description: Gate result (passed, failed, or error for invalid inputs).
+    value: ${{ steps.validate.outputs.status }}
+  report-directory:
+    description: Unique directory containing JSON, HTML, Markdown and JUnit reports.
+    value: ${{ steps.validate.outputs.report-directory }}
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      with:
+        python-version: '3.12'
+    - id: validate
+      shell: bash
+      env:
+        DATASET_GATE_ACTION_PATH: ${{ github.action_path }}
+        DATASET_GATE_DATASET: ${{ inputs.dataset }}
+        DATASET_GATE_CONTRACT: ${{ inputs.contract }}
+        DATASET_GATE_FAIL_ON_WARNING: ${{ inputs.fail-on-warning }}
+      run: python -I "$DATASET_GATE_ACTION_PATH/scripts/github_action.py"

@@ -13,6 +13,24 @@ FastAPI interface from another application, or an offline HTML report during rev
 
 **Python · FastAPI · SQLite · pytest · GitHub Actions**
 
+## Check data in your GitHub workflow
+
+```yaml
+- uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+- uses: pralav-25/dataset-gate@main
+  with:
+    dataset: data/tickets.csv
+    contract: data/tickets.contract.json
+```
+
+The action fails on data-quality errors and writes a job summary with each rule's result.
+It also creates JSON, HTML, Markdown and JUnit reports, including when the gate fails.
+No API service or runtime package dependencies are needed. Pin a reviewed commit SHA
+instead of `@main` for reproducible use.
+
+[Complete workflow with report downloads](docs/github-actions.md) ·
+[See clean and faulty CSV runs](https://github.com/pralav-25/dataset-gate/actions/workflows/action-smoke.yml)
+
 ## Try the complete workflow
 
 ```bash
@@ -20,7 +38,7 @@ git clone https://github.com/pralav-25/dataset-gate.git
 cd dataset-gate
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install -e '.[api,dev]'
+python -m pip install -e .
 
 dataset-gate profile examples/tickets.clean.csv
 dataset-gate validate examples/tickets.clean.csv --contract examples/tickets.contract.json
@@ -76,6 +94,7 @@ It does not infer business truth. `dataset-gate rules` lists every supported che
 ## History and API
 
 ```bash
+python -m pip install -e '.[api]'
 dataset-gate validate examples/tickets.clean.csv --contract examples/tickets.contract.json --save --db reports/history.db
 dataset-gate history --db reports/history.db
 dataset-gate serve --db reports/history.db
@@ -107,11 +126,12 @@ is included; a Docker engine was not available for image execution during develo
 ## Development and walkthrough
 
 ```bash
+python -m pip install -e '.[api,dev]'
 pytest --cov=dataset_gate
 ruff check .
 ruff format --check .
 python -m build
-python scripts/package_smoke.py dist/dataset_gate-0.1.0-py3-none-any.whl
+python scripts/package_smoke.py dist/dataset_gate-0.2.0-py3-none-any.whl
 ```
 
 [Quickstart](docs/quickstart.md) · [Architecture](docs/architecture.md) ·
