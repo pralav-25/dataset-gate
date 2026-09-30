@@ -1,0 +1,52 @@
+name: Action integration
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Accept clean CSV
+        id: clean
+        uses: ./
+        with:
+          dataset: examples/tickets.clean.csv
+          contract: examples/tickets.contract.json
+      - name: Reject faulty CSV and retain reports
+        id: dirty
+        continue-on-error: true
+        uses: ./
+        with:
+          dataset: examples/tickets.dirty.csv
+          contract: examples/tickets.contract.json
+      - name: Verify action results
+        env:
+          CLEAN_STATUS: ${{ steps.clean.outputs.status }}
+          DIRTY_STATUS: ${{ steps.dirty.outputs.status }}
+          DIRTY_OUTCOME: ${{ steps.dirty.outcome }}
+          CLEAN_REPORTS: ${{ steps.clean.outputs.report-directory }}
+          DIRTY_REPORTS: ${{ steps.dirty.outputs.report-directory }}
+        run: |
+          test "$CLEAN_STATUS" = passed
+          test "$DIRTY_STATUS" = failed
+          test "$DIRTY_OUTCOME" = failure
+          test "$CLEAN_REPORTS" != "$DIRTY_REPORTS"
+          for report in report.json report.html report.xml report.md; do
+            test -s "$CLEAN_REPORTS/$report"
+            test -s "$DIRTY_REPORTS/$report"
+          done
+      - name: Save example reports
+        if: ${{ always() && steps.dirty.outputs.report-directory != '' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: dataset-gate-example-reports
+          path: ${{ steps.dirty.outputs.report-directory }}
+          if-no-files-found: error
+          retention-days: 7
