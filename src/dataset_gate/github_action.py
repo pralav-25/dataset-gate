@@ -23,6 +23,23 @@ def annotation(message):
     return str(message).replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
 
 
+def workspace_file(workspace, relative_path, label):
+    """Resolve an action input to a file contained in the checked-out repository."""
+    path = Path(relative_path)
+    if path.is_absolute():
+        raise GateError(f"{label} path must be relative to the checked-out repository")
+    root = workspace.resolve()
+    try:
+        resolved = (root / path).resolve(strict=True)
+    except (OSError, RuntimeError) as exc:
+        raise GateError(f"{label} file does not exist or cannot be resolved") from exc
+    if not resolved.is_relative_to(root):
+        raise GateError(f"{label} path must stay within the checked-out repository")
+    if not resolved.is_file():
+        raise GateError(f"{label} path must name a file")
+    return resolved
+
+
 def main():
     output = os.environ["GITHUB_OUTPUT"]
     try:
@@ -34,7 +51,8 @@ def main():
         if warning not in {"true", "false"}:
             raise GateError("fail-on-warning must be 'true' or 'false'")
         workspace = Path(os.environ["GITHUB_WORKSPACE"])
-        data_path, contract_path = workspace / dataset, workspace / contract
+        data_path = workspace_file(workspace, dataset, "dataset")
+        contract_path = workspace_file(workspace, contract, "contract")
         result = run_validation(load_dataset(data_path), contract_file(contract_path))
         passed = gate_passes(result, fail_on_warning=warning == "true")
         status = "passed" if passed else "failed"
