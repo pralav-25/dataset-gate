@@ -37,3 +37,17 @@ def test_invalid_values():
 def test_unknown_parameter():
     with pytest.raises(GateError):
         execute("value,a,b\n0.3,0.1,0.2", {"typo": 1})
+
+
+def test_cancellation_does_not_hide_a_small_component_difference():
+    small = "1." + "0" * 100 + "1e-100"
+    result = execute(f"value,a,b,c\n1e-100,1e100,{small},-1e100", {"columns": ["a", "b", "c"]})
+    assert not result["passed"]
+    assert result["records"] == (1,)
+
+
+def test_wide_exponent_sum_can_match_a_target_exactly():
+    small = "1." + "0" * 100 + "1e-100"
+    assert execute(f"value,a,b,c\n{small},1e100,{small},-1e100", {"columns": ["a", "b", "c"]})[
+        "passed"
+    ]
