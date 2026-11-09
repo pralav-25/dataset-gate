@@ -37,3 +37,14 @@ def test_invalid_values():
 def test_unknown_parameter():
     with pytest.raises(GateError):
         execute("value\n2\n4", {"typo": 1})
+
+
+def test_cancellation_preserves_a_small_excess_over_the_mean_bound():
+    # Every cell is within the supported numeric domain, including the extra digit.
+    small = "3." + "0" * 100 + "1e-100"
+    result = execute(f"value\n1e100\n{small}\n-1e100", {"min": 1e-100, "max": 1e-100})
+    assert not result["passed"]
+
+
+def test_cancellation_can_still_match_the_mean_bound():
+    assert execute("value\n1e100\n3e-100\n-1e100", {"min": 1e-100, "max": 1e-100})["passed"]
