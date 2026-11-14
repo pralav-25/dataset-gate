@@ -14,14 +14,17 @@ def evaluate(data, rule):
         checked += 1
         value = number(raw)
         valid = value is not None and value == value.to_integral_value()
+        # Decimal subtraction obeys the active precision and can round away
+        # small gaps between large integer identifiers. Integer arithmetic is exact.
+        integer = int(value) if valid else None
         if valid and previous is not None:
-            valid = value - previous == rule.params["step"]
+            valid = integer - previous == rule.params["step"]
         if not valid:
             failed += 1
             if len(samples) < 20:
                 samples.append(record)
-        if value is not None and value == value.to_integral_value():
-            previous = value
+        if integer is not None:
+            previous = integer
     return Finding(
         checked,
         failed,
